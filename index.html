@@ -12,7 +12,7 @@
             font-family: system-ui, sans-serif;
         }
         body {
-            max-width: 620px;
+            max-width: 700px;
             margin: 40px auto;
             padding: 0 20px;
             background: #f5f7fa;
@@ -60,10 +60,25 @@
         }
         #result {
             margin-top: 20px;
+            overflow-x: auto;
         }
-        .item {
-            padding: 8px 12px;
+        .lunar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .lunar-table th {
+            background: #2563eb;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .lunar-table td {
+            padding: 10px 12px;
             border-bottom: 1px solid #eee;
+        }
+        .lunar-table tr:nth-child(even) {
+            background: #f8fafc;
         }
         .tip{
             color:#666;
@@ -136,7 +151,19 @@ function calcBirth(){
         </div>
     `;
 
-    let html = "";
+    // 表格结构开头
+    let html = `
+        <table class="lunar-table">
+            <thead>
+                <tr>
+                    <th>年龄</th>
+                    <th>农历生日</th>
+                    <th>对应公历日期</th>
+                    <th>星期</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
     const birthSolarYear = birthDateObj.getFullYear();
     for(let age = startAge; age <= endAge; age++){
         const targetLunarYear = birthSolarYear + age;
@@ -151,13 +178,27 @@ function calcBirth(){
             const solarDate = targetLunarObj.toDate();
             const week = weekText[solarDate.getDay()];
             const solarStr = targetLunarObj.format('YYYY年MM月DD日');
-            html += `<div class="item">
-                ${age}岁：农历${leapStr}${birthLunarMonth}月${birthLunarDay}日 → ${solarStr} ${week}
-            </div>`;
+            html += `
+                <tr>
+                    <td>${age}岁</td>
+                    <td>${leapStr}${birthLunarMonth}月${birthLunarDay}日</td>
+                    <td>${solarStr}</td>
+                    <td>${week}</td>
+                </tr>
+            `;
         }catch(e){
-            html += `<div class="item" style="color:#c00">${age}岁：${targetLunarYear}年没有【${leapStr}${birthLunarMonth}月${birthLunarDay}日】这个农历日期</div>`;
+            html += `
+                <tr>
+                    <td>${age}岁</td>
+                    <td colspan="3" style="color:#c00">${targetLunarYear}年没有【${leapStr}${birthLunarMonth}月${birthLunarDay}日】这个农历日期</td>
+                </tr>
+            `;
         }
     }
+    html += `
+            </tbody>
+        </table>
+    `;
     resultDom.innerHTML = html;
 }
 </script>
