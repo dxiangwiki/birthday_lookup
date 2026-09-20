@@ -121,12 +121,12 @@ function calcBirth(){
         return;
     }
 
-    // 修复lunisolar API调用
+    // 正确使用lunisolar API：公历转农历
     const birthDateObj = new Date(solarBirthInput);
-    const birthLunar = lunisolar(birthDateObj);
-    const birthLunarMonth = birthLunar.lunarMonth;
-    const birthLunarDay = birthLunar.lunarDay;
-    const birthIsLeap = birthLunar.isLeapMonth;
+    const birthLunar = lunisolar(birthDateObj).lunar;
+    const birthLunarMonth = birthLunar.month;
+    const birthLunarDay = birthLunar.day;
+    const birthIsLeap = birthLunar.isLeap;
     const weekText = ['周日','周一','周二','周三','周四','周五','周六'];
 
     const leapStr = birthIsLeap ? "闰" : "";
@@ -141,6 +141,7 @@ function calcBirth(){
     for(let age = startAge; age <= endAge; age++){
         const targetLunarYear = birthSolarYear + age;
         try{
+            // 农历转公历
             const targetLunarObj = lunisolar.fromLunar({
                 year: targetLunarYear,
                 month: birthLunarMonth,
