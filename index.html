@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>农历生日逐年公历查询</title>
+    <!-- lunisolar CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lunisolar@2.6.0/dist/lunisolar.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            max-width: 620px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f7fa;
+        }
+        .card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px #00000012;
+        }
+        .form-item {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .row {
+            display: flex;
+            gap:10px;
+        }
+        .row > div {
+            flex:1;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        .item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .tip{
+            color:#666;
+            font-size:14px;
+            margin:4px 0 16px;
+        }
+        .lunar-info{
+            background:#eef6ff;
+            padding:10px;
+            border-radius:8px;
+            margin-bottom:16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>公历生日 → 逐年农历生日公历查询</h2>
+        <div class="tip">输入你的公历出生年月日，自动换算为农历生日，批量查询每一岁对应的公历日期</div>
+
+        <div class="form-item">
+            <label>公历出生日期</label>
+            <input type="date" id="solarBirthDate" required>
+        </div>
+
+        <div class="row">
+            <div class="form-item">
+                <label>起始年龄</label>
+                <input type="number" id="startAge" value="0" min="0">
+            </div>
+            <div class="form-item">
+                <label>结束年龄</label>
+                <input type="number" id="endAge" value="30" min="0">
+            </div>
+        </div>
+
+        <button onclick="calcBirth()">开始查询</button>
+        <div id="lunarInfoBox"></div>
+        <div id="result"></div>
+    </div>
+
+<script>
+function calcBirth(){
+    const solarBirthInput = document.getElementById('solarBirthDate').value;
+    const startAge = Number(document.getElementById('startAge').value);
+    const endAge = Number(document.getElementById('endAge').value);
+    const resultDom = document.getElementById('result');
+    const lunarInfoBox = document.getElementById('lunarInfoBox');
+
+    if(!solarBirthInput){
+        resultDom.innerHTML = '<div style="color:red">请选择公历出生日期</div>';
+        return;
+    }
+    if(startAge > endAge){
+        resultDom.innerHTML = '<div style="color:red">起始年龄不能大于结束年龄</div>';
+        return;
+    }
+
+    // 修复lunisolar API调用
+    const birthDateObj = new Date(solarBirthInput);
+    const birthLunar = lunisolar(birthDateObj);
+    const birthLunarMonth = birthLunar.lunarMonth;
+    const birthLunarDay = birthLunar.lunarDay;
+    const birthIsLeap = birthLunar.isLeapMonth;
+    const weekText = ['周日','周一','周二','周三','周四','周五','周六'];
+
+    const leapStr = birthIsLeap ? "闰" : "";
+    lunarInfoBox.innerHTML = `
+        <div class="lunar-info">
+        ✅ 该公历生日对应的农历：<strong>${leapStr}${birthLunarMonth}月${birthLunarDay}日</strong>
+        </div>
+    `;
+
+    let html = "";
+    const birthSolarYear = birthDateObj.getFullYear();
+    for(let age = startAge; age <= endAge; age++){
+        const targetLunarYear = birthSolarYear + age;
+        try{
+            const targetLunarObj = lunisolar.fromLunar({
+                year: targetLunarYear,
+                month: birthLunarMonth,
+                day: birthLunarDay,
+                isLeap: birthIsLeap
+            });
+            const solarDate = targetLunarObj.toDate();
+            const week = weekText[solarDate.getDay()];
+            const solarStr = targetLunarObj.format('YYYY年MM月DD日');
+            html += `<div class="item">
+                ${age}岁：农历${leapStr}${birthLunarMonth}月${birthLunarDay}日 → ${solarStr} ${week}
+            </div>`;
+        }catch(e){
+            html += `<div class="item" style="color:#c00">${age}岁：${targetLunarYear}年没有【${leapStr}${birthLunarMonth}月${birthLunarDay}日】这个农历日期</div>`;
+        }
+    }
+    resultDom.innerHTML = html;
+}
+</script>
+</body>
+</html>
